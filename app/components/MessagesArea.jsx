@@ -6,6 +6,8 @@ const MessagesArea = ({
   messagesEndRef,
   playingAudioId,
   playAudio,
+  finalDuration,
+  formatDuration,
 }) => (
   <div className="flex-1 bg-transparent p-4 overflow-y-auto space-y-4">
     {messages.length === 0 && (
@@ -20,6 +22,8 @@ const MessagesArea = ({
         message={msg}
         playingAudioId={playingAudioId}
         playAudio={playAudio}
+        finalDuration={finalDuration}
+        formatDuration={formatDuration}
       />
     ))}
 

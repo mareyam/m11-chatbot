@@ -1,6 +1,12 @@
 import AudioWaveform from "./AudioWaveform";
 
-const Message = ({ message, playingAudioId, playAudio }) => {
+const Message = ({
+  message,
+  formatDuration,
+  playingAudioId,
+  finalDuration,
+  playAudio,
+}) => {
   const messageType = message?.type || "assistant";
 
   return (
@@ -23,31 +29,24 @@ const Message = ({ message, playingAudioId, playAudio }) => {
       >
         {message?.audioUrl ? (
           <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => playAudio(message?.audioUrl, message?.id)}
-                className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all"
-              >
-                {playingAudioId === message?.id ? (
-                  <span className="text-xl">⏸</span>
-                ) : (
-                  <span className="text-xl">▶</span>
-                )}
-              </button>
-              <div className="flex-1">
-                <AudioWaveform
-                  isPlaying={playingAudioId === message?.id}
-                  messageId={message?.id}
-                  playingAudioId={playingAudioId}
-                />
-              </div>
-            </div>
             {message?.content !== "🎤 Voice message" && (
               <p className="text-sm mt-2">{message?.content}</p>
             )}
           </div>
         ) : (
-          <p>{message?.content}</p>
+          <div>
+            <p>{message?.content}</p>
+            <div
+              className={`text-right text-black text-xs ${
+                messageType === "user"
+                  ? " bg-gray-300 text-gray-600"
+                  : "bg-black text-white"
+              }`}
+              // className="text-right text-black text-xs mt-2"
+            >
+              {formatDuration(finalDuration)}
+            </div>
+          </div>
         )}
       </div>
 
@@ -62,56 +61,3 @@ const Message = ({ message, playingAudioId, playAudio }) => {
 };
 
 export default Message;
-// import AudioWaveform from "./AudioWaveform";
-
-// const Message = ({ message, playingAudioId, playAudio }) => {
-//   const messageType = message?.type || "assistant";
-//   console.log(message);
-
-//   return (
-//     <div
-//       className={`flex ${
-//         messageType === "user" ? "justify-end" : "justify-start"
-//       }`}
-//     >
-//       <div
-//         className={`max-w-xs md:max-w-md px-4 py-3 rounded-lg ${
-//           messageType === "user"
-//             ? "bg-blue-600 text-white"
-//             : "bg-slate-600 text-white"
-//         }`}
-//       >
-//         {message?.audioUrl ? (
-//           <div className="space-y-2">
-//             <div className="flex items-center gap-3">
-//               <button
-//                 onClick={() => playAudio(message?.audioUrl, message?.id)}
-//                 className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all"
-//               >
-//                 {playingAudioId === message?.id ? (
-//                   <span className="text-xl">⏸</span>
-//                 ) : (
-//                   <span className="text-xl">▶</span>
-//                 )}
-//               </button>
-//               <div className="flex-1">
-//                 <AudioWaveform
-//                   isPlaying={playingAudioId === message?.id}
-//                   messageId={message?.id}
-//                   playingAudioId={playingAudioId}
-//                 />
-//               </div>
-//             </div>
-//             {message?.content !== "🎤 Voice message" && (
-//               <p className="text-sm mt-2">{message?.content}</p>
-//             )}
-//           </div>
-//         ) : (
-//           <p>{message?.content}</p>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Message;
