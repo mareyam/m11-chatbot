@@ -132,25 +132,7 @@ export default function VoiceAssistant() {
     }
   };
 
-  // ----------------- AUDIO PLAYBACK -----------------
-  // const playAudio = (audioUrl, messageId) => {
-  //   console.log("play audio");
-
-  //   if (!audioRef.current) return;
-  //   if (playingAudioId === messageId) {
-  //     audioRef.current.pause();
-  //     setPlayingAudioId(null);
-  //   } else {
-  //     audioRef.current.src = audioUrl;
-  //     audioRef.current.play();
-  //     setPlayingAudioId(messageId);
-  //     audioRef.current.onended = () => setPlayingAudioId(null);
-  //   }
-  // };
-
   const sendTextMessage = async () => {
-    console.log("text");
-
     if (!inputText.trim()) return;
 
     const userMessage = {
@@ -159,7 +141,12 @@ export default function VoiceAssistant() {
       content: inputText,
       timestamp: new Date(),
     };
+
+    // Add user message locally
     setMessages((prev) => [...prev, userMessage]);
+
+    // Save user message to DB
+    saveMessageToDB("m@gmail.com", inputText, "user");
 
     const content = inputText;
     setInputText("");
@@ -177,21 +164,69 @@ export default function VoiceAssistant() {
         ? data[0]?.output
         : data.output || "No text found";
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          type: "assistant",
-          content: replyText,
-          timestamp: new Date(),
-        },
-      ]);
+      // Add assistant reply locally
+      const assistantMessage = {
+        id: Date.now().toString(),
+        type: "assistant",
+        content: replyText,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      // Save assistant reply to DB
+      saveMessageToDB("m@gmail.com", replyText, "assistant");
     } catch (err) {
       console.error("Error sending text message:", err);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // const sendTextMessage = async () => {
+  //   console.log("text");
+
+  //   if (!inputText.trim()) return;
+
+  //   const userMessage = {
+  //     id: Date.now().toString(),
+  //     type: "user",
+  //     content: inputText,
+  //     timestamp: new Date(),
+  //   };
+  //   setMessages((prev) => [...prev, userMessage]);
+
+  //   const content = inputText;
+  //   setInputText("");
+  //   setIsLoading(true);
+
+  //   try {
+  //     const resp = await fetch(FIRST_WEBHOOK, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ type: "text", text: content }),
+  //     });
+
+  //     const data = await resp.json();
+  //     const replyText = Array.isArray(data)
+  //       ? data[0]?.output
+  //       : data.output || "No text found";
+
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       {
+  //         id: Date.now().toString(),
+  //         type: "assistant",
+  //         content: replyText,
+  //         timestamp: new Date(),
+  //       },
+  //     ]);
+  //     saveMessageToDB(userEmail, content, "user");
+  //   } catch (err) {
+  //     console.error("Error sending text message:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const transcribeAudio = async (audioBlob, sender = "user") => {
     console.log("transcribeAudio");
@@ -289,6 +324,7 @@ export default function VoiceAssistant() {
           msg.id === placeholderId ? { ...msg, content: transcript } : msg
         )
       );
+      saveMessageToDB(userEmail, transcript, "assistant");
     } catch (err) {
       console.error("Error handling assistant reply:", err);
       setMessages((prev) =>
@@ -298,6 +334,19 @@ export default function VoiceAssistant() {
             : msg
         )
       );
+    }
+  };
+
+  const saveMessageToDB = async (email, content, sender) => {
+    console.log("email", email, content, sender);
+    try {
+      await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, content, sender }),
+      });
+    } catch (err) {
+      console.error("Failed to save message:", err);
     }
   };
 
